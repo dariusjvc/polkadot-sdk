@@ -13,6 +13,9 @@ publish = false
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
+log = "0.4"
+pqcrypto-dilithium = { version = "0.5", optional = true }
+pqcrypto-traits = { version = "0.3.5", optional = true }
 codec = { features = ["derive"], workspace = true }
 scale-info = { features = ["derive"], workspace = true }
 
@@ -37,6 +40,8 @@ std = [
 	"sp-core/std",
 	"sp-io/std",
 	"sp-runtime/std",
+	"pqcrypto-dilithium",
+	"pqcrypto-traits"
 ]
 runtime-benchmarks = [
 	"frame-benchmarking/runtime-benchmarks",

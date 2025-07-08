@@ -15,6 +15,9 @@ build = "build.rs"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
+log = "0.4"
+pqcrypto-dilithium = { version = "0.5", optional = true }
+pqcrypto-traits = { version = "0.3.5", optional = true }
 clap = { features = ["derive"], workspace = true }
 futures = { features = ["thread-pool"], workspace = true }
 jsonrpsee = { features = ["server"], workspace = true }
@@ -65,7 +68,7 @@ substrate-build-script-utils = { workspace = true, default-features = true }
 
 [features]
 default = ["std"]
-std = ["solochain-template-runtime/std"]
+std = ["solochain-template-runtime/std","pqcrypto-dilithium","pqcrypto-traits"]
 # Dependencies that are only required if runtime benchmarking should be build.
 runtime-benchmarks = [
 	"frame-benchmarking-cli/runtime-benchmarks",

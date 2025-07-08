@@ -5,6 +5,10 @@
 
 #![warn(missing_docs)]
 
+mod dilithium_rpc;
+use dilithium_rpc::{Dilithium, DilithiumApiServer};
+
+
 use std::sync::Arc;
 
 use jsonrpsee::RpcModule;
@@ -55,6 +59,8 @@ where
 	// let genesis_hash = client.block_hash(0).ok().flatten().expect("Genesis block exists; qed");
 	// let properties = chain_spec.properties();
 	// module.merge(ChainSpec::new(chain_name, genesis_hash, properties).into_rpc())?;
+
+	module.merge(Dilithium::new().into_rpc())?;
 
 	Ok(module)
 }

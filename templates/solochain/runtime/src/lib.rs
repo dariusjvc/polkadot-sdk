@@ -27,6 +27,75 @@ pub use sp_runtime::BuildStorage;
 
 pub mod genesis_config_presets;
 
+// Smart Contract Support
+use frame_support::parameter_types;
+use frame_support::traits::Nothing;
+use sp_runtime::traits::ConstU32;
+use sp_runtime::traits::ConstBool;
+use sp_runtime::Perbill;
+
+parameter_types! {
+    // Cost of storing a single contract item (e.g. a key or value in storage).
+    pub const DepositPerItem: Balance = 4 * MILLI_UNIT;
+    pub const DepositPerByte: Balance = 20 * MICRO_UNIT;
+    pub const DefaultDepositLimit: Balance = 16 * (4 * MILLI_UNIT) + 16 * 1024 * (20 * MICRO_UNIT);
+    pub const CodeHashLockupDepositPercentConst: Perbill = Perbill::from_percent(10);
+
+    // Maximum number of code-to-code *delegate* calls allowed.
+    pub const MaxDelegateDependencies: u32 = 32;
+
+	// Define limits for contract sizes and other parameters:
+	pub const MaxCodeLen: u32 = 256 * 1024;              // 256 KB maximum contract code size:contentReference[oaicite:0]{index=0}
+	pub const MaxStorageKeyLen: u32 = 128;               // Max bytes in a storage key:contentReference[oaicite:1]{index=1}
+	pub const MaxTransientStorageSize: u32 = 1024 * 1024; // 1 MB transient storage limit:contentReference[oaicite:2]{index=2}
+	pub const MaxDebugBufferLen: u32 = 2 * 1024 * 1024;   // 2 MB debug output buffer size:contentReference[oaicite:3]{index=3}
+}
+
+
+/// Dummy Randomness provider (since contract-level randomness is deprecated).
+pub struct DummyRandomness;
+impl frame_support::traits::Randomness<Hash, BlockNumber> for DummyRandomness {
+    fn random(_subject: &[u8]) -> (Hash, BlockNumber) {
+        (Hash::default(), 0)  // Always return zero hash and block 0
+    }
+}
+
+impl pallet_contracts::Config for Runtime {
+    type Time = Timestamp;  // Use the Timestamp pallet for block time
+    type Randomness = DummyRandomness;  // or RandomnessCollectiveFlip if using that:contentReference[oaicite:4]{index=4}
+    type Currency = Balances;  // The Balances pallet provides the currency (for gas fees):contentReference[oaicite:5]{index=5}
+    type RuntimeEvent = RuntimeEvent;  // Use the runtime's aggregated Event type
+    type RuntimeCall = RuntimeCall;    // The runtime's Call type (so contracts can call into the runtime)
+    type RuntimeHoldReason = RuntimeHoldReason;  // The unified hold reason type (from the runtime macro)
+    type CallFilter = Nothing;  // Disallow all runtime calls by default (safer):contentReference[oaicite:6]{index=6}
+    type WeightPrice = pallet_transaction_payment::Pallet<Self>;  // Link to transaction payment for gas price
+    type WeightInfo = pallet_contracts::weights::SubstrateWeight<Self>;  // Default weight calculations
+    type ChainExtension = ();  // No chain extension in this simple setup (set to () if none)
+    type DepositPerItem = DepositPerItem;
+    type DepositPerByte = DepositPerByte;
+    type DefaultDepositLimit = DefaultDepositLimit;
+    type CallStack = [pallet_contracts::Frame<Self>; 5];  // Maximum 5 nested calls deep
+    type Schedule = ();
+    type AddressGenerator = pallet_contracts::DefaultAddressGenerator;
+	type MaxCodeLen = ConstU32<{256 * 1024}>;
+	type MaxStorageKeyLen = ConstU32<128>;
+	type MaxTransientStorageSize = ConstU32<{ 1024 * 1024 }>;
+	type MaxDebugBufferLen = ConstU32<{ 2 * 1024 * 1024 }>;
+	type MaxDelegateDependencies = ConstU32<32>;
+	
+    type CodeHashLockupDepositPercent = CodeHashLockupDepositPercentConst;
+    type UnsafeUnstableInterface = ConstBool<false>;  // Disallow unsafe RPC interfaces
+    // Debugging and XCM interface (disable for a simple setup):
+    type Debug = ();
+    type Environment = ();
+    type Migrations = ();
+    type Xcm = ();
+    // Who can deploy/instantiate contracts:
+    type UploadOrigin = frame_system::EnsureSigned<AccountId>;
+    type InstantiateOrigin = frame_system::EnsureSigned<AccountId>;
+    type ApiVersion = ();  // Use default API versioning
+}
+
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -226,4 +295,8 @@ mod runtime {
 	// Include the custom logic from the pallet-template in the runtime.
 	#[runtime::pallet_index(7)]
 	pub type Template = pallet_template;
+
+	#[runtime::pallet_index(8)]
+	pub type Contracts = pallet_contracts;
+
 }

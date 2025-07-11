@@ -17,6 +17,12 @@ codec = { features = ["derive"], workspace = true }
 scale-info = { features = ["derive", "serde"], workspace = true }
 serde_json = { workspace = true, default-features = false, features = ["alloc"] }
 
+#pallet sc
+pallet-contracts = { path = "../../../substrate/frame/contracts", default-features = false }
+pallet-insecure-randomness-collective-flip = { workspace = true }
+
+
+
 # frame
 frame-executive = { workspace = true }
 frame-metadata-hash-extension = { workspace = true }
@@ -99,6 +105,8 @@ std = [
 	"sp-transaction-pool/std",
 	"sp-version/std",
 	"substrate-wasm-builder",
+	"pallet-contracts/std",
+	"pallet-insecure-randomness-collective-flip/std"
 ]
 runtime-benchmarks = [
 	"frame-benchmarking/runtime-benchmarks",
@@ -140,3 +148,4 @@ metadata-hash = ["substrate-wasm-builder/metadata-hash"]
 # A convenience feature for enabling things when doing a build
 # for an on-chain release.
 on-chain-release-build = ["metadata-hash", "sp-api/disable-logging"]
+

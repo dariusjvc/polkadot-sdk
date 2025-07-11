@@ -40,6 +40,14 @@ use sp_runtime::{
 };
 use sp_version::RuntimeVersion;
 
+// Parameters for SC
+use frame_system::EventRecord;
+use crate::Contracts;
+use pallet_contracts::{Code, ContractInstantiateResult, ContractExecResult, CodeUploadResult, GetStorageResult};
+use crate::Hash;
+use crate::BlockNumber;
+use crate::RuntimeEvent;
+
 // Local module imports
 use super::{
 	AccountId, Aura, Balance, Block, Executive, Grandpa, InherentDataExt, Nonce, Runtime,
@@ -301,4 +309,82 @@ impl_runtime_apis! {
 			crate::genesis_config_presets::preset_names()
 		}
 	}
+
+	// Functions used in SC	
+	impl pallet_contracts::ContractsApi<
+    Block,
+    AccountId,
+    Balance,
+    BlockNumber,
+    Hash,
+    EventRecord<RuntimeEvent, Hash>
+> for Runtime {
+    fn instantiate(
+        origin: AccountId,
+        value: Balance,
+        gas_limit: Option<Weight>,
+        storage_deposit_limit: Option<Balance>,
+        code: pallet_contracts::Code<Hash>,
+        data: Vec<u8>,
+        salt: Vec<u8>,
+    ) -> pallet_contracts::ContractInstantiateResult<AccountId, Balance, EventRecord<RuntimeEvent, Hash>> {
+
+		const DEFAULT_GAS_LIMIT: Weight = Weight::from_parts(500_000_000, 0);
+
+		let gas_limit = gas_limit.unwrap_or(DEFAULT_GAS_LIMIT);
+    	Contracts::bare_instantiate(
+            origin,
+            value,
+            gas_limit,
+            storage_deposit_limit,
+            code,
+            data,
+            salt,
+            pallet_contracts::DebugInfo::UnsafeDebug,
+            pallet_contracts::CollectEvents::UnsafeCollect,
+        )
+    }
+
+    fn call(
+        origin: AccountId,
+        dest: AccountId,
+        value: Balance,
+        gas_limit: Option<Weight>,
+        storage_deposit_limit: Option<Balance>,
+        input_data: Vec<u8>,
+    ) -> pallet_contracts::ContractExecResult<Balance, EventRecord<RuntimeEvent, Hash>> {
+		const DEFAULT_GAS_LIMIT: Weight = Weight::from_parts(500_000_000, 0);
+		let resolved_gas_limit = gas_limit.unwrap_or(DEFAULT_GAS_LIMIT); 
+        Contracts::bare_call(
+            origin,
+            dest,
+            value,
+            resolved_gas_limit,
+            storage_deposit_limit,
+            input_data,
+            pallet_contracts::DebugInfo::UnsafeDebug,
+            pallet_contracts::CollectEvents::UnsafeCollect,
+            pallet_contracts::Determinism::Enforced,
+        )
+    }
+
+    fn upload_code(
+        origin: AccountId,
+        code: Vec<u8>,
+        storage_deposit_limit: Option<Balance>,
+        determinism: pallet_contracts::Determinism,
+    ) -> pallet_contracts::CodeUploadResult<Hash, Balance> {
+        Contracts::bare_upload_code(origin, code, storage_deposit_limit, determinism)
+    }
+
+    fn get_storage(
+        address: AccountId,
+        key: Vec<u8>,
+    ) -> pallet_contracts::GetStorageResult {
+        Contracts::get_storage(address, key)
+    }
 }
+
+}
+
+

@@ -20,17 +20,6 @@ The current implementation does not provide cryptographic security guarantees an
 - A custom RPC method (`dilithium_verify`) is implemented in the node to verify the Dilithium signature.
 - Transactions are only submitted to the blockchain if the signature is successfully verified.
 
-## Project Structure
-
-templates/solochain/
-├── node/
-│   ├── src/
-│   │   ├── rpc.rs
-│   │   └── rpc/
-│   └── Cargo.toml
-├── pallets/template/
-│   └── Cargo.toml
-
 ## Why Not for Production?
 
 1. No on-chain verification: The signature is only checked via RPC, not by the blockchain protocol itself.
